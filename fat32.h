@@ -80,11 +80,10 @@ struct long_filename_entry {
 };
 #pragma pack(pop)
 
-void print_bpb();
-void print_dir_entry();
-void get_next_cluster(uint64_t *current_cluster);
+void print_name();
+void get_next_cluster(int *current_cluster);
 char *get_long_filename(int cluster, int entry);
-uint64_t remaining_clusters(uint64_t starting_cluster);
+int remaining_clusters(int starting_cluster);
 int is_dir_entry_empty(struct directory_entry *dir_entry);
 struct directory_entry* resolve(const char *path);
 
@@ -96,6 +95,7 @@ int fat32_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t off
 int fat32_unlink(const char *file_path);
 int fat32_write(const char *path, const char *buffer, size_t size, off_t offset, struct fuse_file_info * fi);
 int fat32_rmdir(const char *file_path);
+int fat32_truncate(struct fuse_fs *fs, const char *path, off_t size, struct fuse_file_info *fi);
 
 static struct fuse_operations fuse_ops = {
   .init       =   fat32_init,
@@ -106,10 +106,11 @@ static struct fuse_operations fuse_ops = {
   .unlink     =   fat32_unlink,
   .write      =   fat32_write,
   .rmdir      =   fat32_rmdir,
+  .truncate   =   fat32_truncate,
 };
 
 int fat_offset, clusters_offset;
-uint32_t end_of_chain;
+uint32_t last_cluster;
 pthread_mutex_t read_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 #endif
